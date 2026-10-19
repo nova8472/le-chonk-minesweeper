@@ -75,6 +75,10 @@ class Demo:
         header += f"  {move['latency_s']}s  tokens {move['prompt_tokens']}+{move['completion_tokens']}"
         self.log.configure(state="normal")
         self.log.insert("end", header + "\n")
+        thought = (move.get("thinking") or "").strip()
+        if thought:
+            excerpt = " ".join(thought.split())[:220]
+            self.log.insert("end", "  thinking: " + excerpt + "\n")
         if move["reasoning"]:
             self.log.insert("end", "  thinking: " + move["reasoning"].strip() + "\n")
         self.log.insert("end", "  action:   " + str(move["action"]) + "\n")
@@ -130,6 +134,8 @@ def main():
                         choices=["model", "solver", "random"])
     parser.add_argument("--model", default="mistral-large-4")
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--reasoning", default="none",
+                        choices=["none", "high"])
     parser.add_argument("--delay", type=float, default=0.6,
                         help="pause between moves, seconds")
     parser.add_argument("--max-moves", type=int, default=150)
@@ -137,7 +143,8 @@ def main():
 
     env = MinesweeperEnv(args.difficulty)
     if args.agent == "model":
-        agent = MinesweeperAgent(model=args.model, temperature=args.temperature)
+        agent = MinesweeperAgent(model=args.model, temperature=args.temperature,
+                                  reasoning_effort=args.reasoning)
     elif args.agent == "solver":
         agent = SolverAgent(seed=args.seed)
     else:

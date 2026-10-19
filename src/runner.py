@@ -6,6 +6,7 @@ import json
 import time
 from collections import Counter
 
+from .game import cell_name
 from .metrics import deduce
 
 
@@ -26,15 +27,25 @@ def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True)
     repeat_streak = 0
     last_key = None
     start = time.time()
+    max_turns = max_moves * 3  # hard cap on total turns, incl. wasted/no-op turns
+    turns = 0
 
-    while not game.done and game.moves < max_moves:
+    while not game.done and game.moves < max_moves and turns < max_turns:
+        turns += 1
         hint = None
-        if noop_streak >= 3:
-            hint = ("Your last 3+ actions had no effect. Re-read the feedback above: "
-                    "check the coordinates, whether the cell is already revealed or "
-                    "flagged, and do not repeat rejected moves.")
-        elif repeat_streak >= 3:
-            hint = "You keep repeating the same action. Change your approach."
+        if noop_streak >= 2:
+            reasons = "; ".join(dict.fromkeys(
+                m["feedback"] for m in move_log[-noop_streak:]))[:400]
+            hint = (f"Your last {noop_streak} actions had NO EFFECT: {reasons}. "
+                    "Remember: only DARK cells can be revealed; light gray cells are "
+                    "already revealed. Verify your target is dark in the screenshot "
+                    "before calling.")
+            if noop_streak >= 6:
+                hidden = [cell_name(r, c)
+                          for r in range(game.rows) for c in range(game.cols)
+                          if not game.revealed[r][c] and not game.flagged[r][c]]
+                hint += (" These are the currently UNREVEALED cells (read from the "
+                         "visible board): " + ", ".join(hidden) + ". Choose from these.")
 
         first = not game.first_click_done
         safe_cells = set()
@@ -76,13 +87,17 @@ def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True)
         repeat_streak = repeat_streak + 1 if (key and key == last_key) else 0
         last_key = key
 
-        agent.remember(resp.get("reasoning", ""), action, feedback)
+        # Store successful turns only; failed turns are covered by the hint
+        # system, and repeating failures in history makes the model loop.
+        if result.outcome != "no_op":
+            agent.remember(resp, feedback)
 
         move_log.append({
             "move": game.moves,
             "action": action,
             "cell": result.cell,
             "reasoning": resp.get("reasoning", ""),
+            "thinking": (resp.get("thinking") or "")[:2000],
             "feedback": feedback,
             "outcome": result.outcome,
             "classification": classification,

@@ -15,6 +15,13 @@ def build_system_prompt(rows: int, cols: int, mines: int) -> str:
 - Flag cells you are certain are mines (toggle_flag places or removes a flag). Flags are not required to win, but they help you track deductions.
 - The game ends automatically; you just keep making moves.
 
+# How the board looks (read this carefully)
+- UNREVEALED cells are DARK slate-blue squares with a subtle 3D bevel. These are the only cells you can reveal or flag.
+- REVEALED cells are flat LIGHT GRAY squares. They are done -- never click them again. A revealed count shows as a large colored digit; a 0 shows as an empty light square.
+- FLAGGED cells are dark squares with a red flag icon.
+- Column letters run A..{last_col} left-to-right along the top margin; row numbers 1..{rows} run top-to-bottom along the left margin.
+- Before every move, verify the target cell in the screenshot is DARK. If it is light gray, it is already revealed.
+
 # Coordinates
 - Columns are labeled A (left) to {last_col} (right); rows are labeled 1 (top) to {rows} (bottom). The labels are drawn on the screenshot margins.
 - Refer to cells as column letter + row number, e.g. E5. In tool calls pass row as a number (1 = top row) and col as a letter, e.g. row=5, col="E".
@@ -27,7 +34,8 @@ def build_system_prompt(rows: int, cols: int, mines: int) -> str:
 5. Keep your scratchpad up to date with write_note: track deduced mines, deduced safe cells, and open questions. You see your notes every turn.
 
 # Discipline
-- Every turn: read the screenshot carefully, reason briefly (1-4 sentences), then call exactly ONE action tool (reveal_cell or toggle_flag). You may also call write_note in the same turn.
+- Every turn: read the screenshot carefully, reason briefly, then call exactly ONE action tool (reveal_cell or toggle_flag). You may also call write_note in the same turn.
+- Keep your visible reply text under 4 short sentences. Any longer analysis must go into your write_note call instead -- long replies get cut off and waste turns.
 - Never repeat a move that was rejected or had no effect; the feedback tells you why it failed.
 - The screenshot is the ground truth for the board; trust it over your memory.
 - Check coordinates twice: row 1 is the TOP row, column A is the LEFTMOST column."""

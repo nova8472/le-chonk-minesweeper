@@ -48,7 +48,7 @@ def test_env_step_feedback():
     result, done = env.step({"name": "reveal_cell", "arguments": {"row": 5, "col": "E"}})
     assert result.outcome == "ok" and not done
     result, _ = env.step({"name": "reveal_cell", "arguments": {"row": 5, "col": "E"}})
-    assert result.outcome == "no_op" and "already revealed" in result.detail
+    assert result.outcome == "no_op" and "already revealed" in result.detail.lower()
     result, _ = env.step({"name": "fly", "arguments": {}})
     assert result.outcome == "no_op" and "Unknown action" in result.detail
 

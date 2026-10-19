@@ -108,9 +108,14 @@ class Minesweeper:
             return MoveResult("no_op", "no_op", (r, c), f"{name} is outside the board.")
         if self.flagged[r][c]:
             return MoveResult("no_op", "no_op", (r, c),
-                              f"{name} is flagged. Unflag it first if you want to reveal it.")
+                              f"{name} is FLAGGED (dark square with a red flag). "
+                              f"Unflag it with toggle_flag first if you want to reveal it.")
         if self.revealed[r][c]:
-            return MoveResult("no_op", "no_op", (r, c), f"{name} is already revealed.")
+            shown = "empty" if self.counts[r][c] == 0 else f"number {self.counts[r][c]}"
+            return MoveResult(
+                "no_op", "no_op", (r, c),
+                f"{name} is ALREADY REVEALED (light gray square showing {shown}) -- "
+                f"it cannot be revealed again. Pick a dark unrevealed cell.")
         if not self.first_click_done:
             self._place_mines(r, c)
             self.first_click_done = True

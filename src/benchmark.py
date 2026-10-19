@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,7 +26,8 @@ from .runner import play_game
 
 def make_agent(kind: str, args) -> object:
     if kind == "model":
-        return MinesweeperAgent(model=args.model, temperature=args.temperature)
+        return MinesweeperAgent(model=args.model, temperature=args.temperature,
+                                reasoning_effort=args.reasoning)
     if kind == "solver":
         return SolverAgent(seed=args.seed)
     if kind == "random":
@@ -34,6 +36,8 @@ def make_agent(kind: str, args) -> object:
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     load_dotenv()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--difficulty", default="beginner",
@@ -45,6 +49,8 @@ def main():
                         choices=["model", "solver", "random"])
     parser.add_argument("--model", default="mistral-large-4")
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--reasoning", default="none",
+                        choices=["none", "high"])
     parser.add_argument("--max-moves", type=int, default=150)
     parser.add_argument("--out", default="results")
     args = parser.parse_args()
