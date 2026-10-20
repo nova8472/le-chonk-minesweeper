@@ -186,14 +186,27 @@ class MinesweeperEnv(GameEnv):
         label_font = _load_font(16)
         title_font = _load_font(18)
 
-        # Branding header: pixel cat + title + model tag.
+        # Branding header: pixel cat + title, model tag right-aligned.
+        # The tag layout adapts (smaller font, or skipped) so the two never
+        # overlap regardless of which system font Pillow picks up.
         cat = cat_image(3)
         img.paste(cat, (8, (HEADER_H - cat.height) // 2), cat)
-        d.text((8 + cat.width + 10, HEADER_H // 2), TITLE,
+        title_font = _load_font(18)
+        title_x = 8 + cat.width + 10
+        d.text((title_x, HEADER_H // 2), TITLE,
                font=title_font, fill=PALETTE["label"], anchor="lm")
-        d.text((w - BORDER - 4, HEADER_H // 2),
-               f"mistral-large-4 | {g.difficulty}",
-               font=label_font, fill=PALETTE["label"], anchor="rm")
+        try:
+            title_end = title_x + title_font.getlength(TITLE)
+            tag = "mistral-large-4"
+            for size in (16, 14, 12):
+                tag_font = _load_font(size)
+                tag_x = w - BORDER - 4 - tag_font.getlength(tag)
+                if tag_x >= title_end + 16:
+                    d.text((tag_x, HEADER_H // 2), tag,
+                           font=tag_font, fill=PALETTE["label"], anchor="lm")
+                    break
+        except (AttributeError, OSError):
+            pass  # exotic font fallbacks: skip the tag rather than overlap
         d.line([0, HEADER_H - 1, w, HEADER_H - 1], fill=PALETTE["grid"], width=1)
 
         for c in range(g.cols):
