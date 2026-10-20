@@ -93,6 +93,15 @@ def test_random_pipeline():
     assert rec["moves"] > 0
 
 
+def test_pixel_to_cell():
+    from src.play_human import pixel_to_cell
+    assert pixel_to_cell(58, 104) == (0, 0)     # cell A1
+    assert pixel_to_cell(250, 289) == (4, 4)    # cell E5
+    assert pixel_to_cell(10, 10) is None        # header band
+    assert pixel_to_cell(20, 120) is None       # row-number margin
+    assert pixel_to_cell(400, 60) is None       # still in the header band
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

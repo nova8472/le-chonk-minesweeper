@@ -40,6 +40,14 @@ Opens a window showing the board and, below it, the model's live reasoning, tool
 
 Options: `--agent solver` (non-LLM baseline), `--agent random`, `--difficulty beginner|intermediate`, `--delay 0.6` (pause between moves), `--seed N`.
 
+### Play it yourself
+
+```bash
+python -m src.play_human --seed 7
+```
+
+The same game and the same rendering the model plays from. Left-click to reveal, right-click to flag, restart or roll a new seed from the buttons. Proves the game is a real, fully playable Minesweeper — not a mock built for the agent.
+
 ### Benchmark
 
 ```bash
@@ -111,6 +119,7 @@ src/
   metrics.py     deduction engine + benchmark aggregation
   benchmark.py   seeded headless benchmark CLI
   play.py        windowed demo (tkinter)
+  play_human.py  play it yourself, same rendering
   samples.py     generates the sample screenshots in media/
 tests/
   test_game.py   game logic unit tests
