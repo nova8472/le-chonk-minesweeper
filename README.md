@@ -90,12 +90,12 @@ Beginner boards (9x9, 10 mines), fixed seeds, temperature 0. The model agent pla
 
 | Agent | Win rate | Avg moves | Losses: forced guess | Losses: risky move |
 |-------|----------|-----------|---------------------|--------------------|
-| **mistral-large-4** (final prompt) | **3/5 (60%)** | 26.2 | 0 | 2 |
+| **mistral-large-4** (final prompt) | **3/5 (60%)** | 22.0 | 0 | 2 |
 | mistral-large-4 (initial prompt) | 1/5 (20%) | 17.4 | 0 | 4 |
 | Constraint solver (baseline) | 83/100 (83%) | 17.7 | 17 | 0 |
 | Random (floor baseline) | 0/100 (0%) | 4.0 | 1 | 99 |
 
-Reveal classification (final prompt, 5 games): 56 deduced, 9 risky, 5 openings, 0 pure guesses. Zero losses on forced guesses — every defeat was an unsafe reveal made while a safe deduction existed.
+Reveal classification (final prompt, 5 games): 59 deduced, 3 risky, 5 openings, 0 pure guesses. Zero losses on forced guesses — every defeat was an unsafe reveal made while a safe deduction existed.
 
 ### What the failure analysis found
 
