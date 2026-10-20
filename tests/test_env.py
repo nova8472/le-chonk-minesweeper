@@ -14,21 +14,31 @@ from src.runner import play_game
 def test_render_size():
     env = MinesweeperEnv("beginner")
     img = env.render()
-    assert img.size == (474, 470)  # 34 + 9*48 + 8 by 30 + 9*48 + 8
+    assert img.size == (474, 514)  # 34+9*48+8 by 44+30+9*48+8
 
 
 def test_render_pixels():
     env = MinesweeperEnv("beginner")
     env.reset(7)
     img = env.render()
-    assert img.getpixel((58, 60)) == (106, 124, 141)  # hidden cell fill
+    assert img.getpixel((58, 104)) == (106, 124, 141)  # hidden cell fill
+    assert img.getpixel((470, 40)) == (248, 249, 250)  # header background
     env.step({"name": "reveal_cell", "arguments": {"row": 5, "col": "E"}})
     img = env.render()
-    assert img.getpixel((250, 250)) == (233, 236, 239)  # E5 now revealed
+    assert img.getpixel((250, 289)) == (233, 236, 239)  # E5 now revealed
     # base64 export is a valid PNG
     import base64
     raw = base64.b64decode(env.render_base64())
     assert raw[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_cat_art():
+    from src.cat import CAT_PIXELS, cat_image
+    assert all(len(row) == 12 for row in CAT_PIXELS)
+    img = cat_image(3)
+    assert img.size == (36, 36) and img.mode == "RGBA"
+    # the cat's body is orange, not transparent
+    assert img.getpixel((18, 16)) == (244, 157, 55, 255)
 
 
 def test_parse_coord():

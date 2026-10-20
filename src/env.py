@@ -14,12 +14,15 @@ from abc import ABC, abstractmethod
 
 from PIL import Image, ImageDraw, ImageFont
 
+from .cat import cat_image
 from .game import Minesweeper, MoveResult
 
 CELL = 48            # px per board cell
 LABEL_W = 34         # left margin for row numbers
 LABEL_H = 30         # top margin for column letters
+HEADER_H = 44        # branding band above the board
 BORDER = 8
+TITLE = "LE CHONK PLAYS MINESWEEPER"
 
 PALETTE = {
     "background": (248, 249, 250),
@@ -176,25 +179,36 @@ class MinesweeperEnv(GameEnv):
     def render(self) -> Image.Image:
         g = self.game
         w = LABEL_W + g.cols * CELL + BORDER
-        h = LABEL_H + g.rows * CELL + BORDER
+        h = HEADER_H + LABEL_H + g.rows * CELL + BORDER
         img = Image.new("RGB", (w, h), PALETTE["background"])
         d = ImageDraw.Draw(img)
         number_font = _load_font(30)
         label_font = _load_font(16)
+        title_font = _load_font(18)
+
+        # Branding header: pixel cat + title + model tag.
+        cat = cat_image(3)
+        img.paste(cat, (8, (HEADER_H - cat.height) // 2), cat)
+        d.text((8 + cat.width + 10, HEADER_H // 2), TITLE,
+               font=title_font, fill=PALETTE["label"], anchor="lm")
+        d.text((w - BORDER - 4, HEADER_H // 2),
+               f"mistral-large-4 | {g.difficulty}",
+               font=label_font, fill=PALETTE["label"], anchor="rm")
+        d.line([0, HEADER_H - 1, w, HEADER_H - 1], fill=PALETTE["grid"], width=1)
 
         for c in range(g.cols):
             x = LABEL_W + c * CELL + CELL // 2
-            d.text((x, LABEL_H // 2), chr(ord("A") + c),
+            d.text((x, HEADER_H + LABEL_H // 2), chr(ord("A") + c),
                    font=label_font, fill=PALETTE["label"], anchor="mm")
         for r in range(g.rows):
-            y = LABEL_H + r * CELL + CELL // 2
+            y = HEADER_H + LABEL_H + r * CELL + CELL // 2
             d.text((LABEL_W // 2, y), str(r + 1),
                    font=label_font, fill=PALETTE["label"], anchor="mm")
 
         for r in range(g.rows):
             for c in range(g.cols):
                 x0 = LABEL_W + c * CELL
-                y0 = LABEL_H + r * CELL
+                y0 = HEADER_H + LABEL_H + r * CELL
                 x1, y1 = x0 + CELL - 2, y0 + CELL - 2
                 cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
                 if g.revealed[r][c]:

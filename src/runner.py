@@ -10,7 +10,8 @@ from .game import cell_name
 from .metrics import deduce
 
 
-def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True):
+def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True,
+             on_turn_start=None):
     """Run one full game. Returns a record dict.
 
     Per move we classify reveals against what a perfect player could have
@@ -32,6 +33,8 @@ def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True)
 
     while not game.done and game.moves < max_moves and turns < max_turns:
         turns += 1
+        if on_turn_start:
+            on_turn_start(game.moves + 1)
         hint = None
         if noop_streak >= 2:
             reasons = "; ".join(dict.fromkeys(

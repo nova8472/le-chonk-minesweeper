@@ -15,11 +15,13 @@ import queue
 import threading
 import time
 import tkinter as tk
+from tkinter import ttk
 
 from PIL import Image, ImageTk
 from dotenv import load_dotenv
 
 from .agent import MinesweeperAgent
+from .cat import cat_image
 from .env import MinesweeperEnv
 from .mock_agent import RandomAgent, SolverAgent
 from .runner import play_game
@@ -39,8 +41,25 @@ class Demo:
 
         self.root = tk.Tk()
         self.root.title("Le Chonk plays Minesweeper")
+        icon = ImageTk.PhotoImage(cat_image(4))
+        self.root.iconphoto(True, icon)
+        self._icon_ref = icon  # keep alive
         self.board_label = tk.Label(self.root)
         self.board_label.pack(padx=10, pady=10)
+
+        self.thinking_frame = tk.Frame(self.root)
+        self.thinking_frame.pack(fill="x", padx=10, pady=(0, 4))
+        self.cat_photo = ImageTk.PhotoImage(cat_image(2))
+        tk.Label(self.thinking_frame, image=self.cat_photo).pack(side="left")
+        self.thinking_label = tk.Label(self.thinking_frame, text="Ready.",
+                                       anchor="w", font=("Consolas", 10))
+        self.thinking_label.pack(side="left", padx=8)
+        self.bar = ttk.Progressbar(self.thinking_frame, mode="indeterminate",
+                                   length=240)
+        self.bar.pack(side="left", padx=8)
+        self.thinking = False
+        self.dots = 0
+
         self.log = tk.Text(self.root, width=96, height=20, state="disabled",
                            font=("Consolas", 10), wrap="word")
         self.log.pack(fill="both", expand=True, padx=10, pady=(0, 6))
@@ -54,10 +73,14 @@ class Demo:
     def _worker(self):
         try:
             record = play_game(self.env, self.agent, seed=self.seed,
-                               max_moves=self.max_moves, on_move=self._emit)
+                               max_moves=self.max_moves, on_move=self._emit,
+                               on_turn_start=self._think)
             self.q.put(("done", record))
         except Exception as err:
             self.q.put(("error", str(err)))
+
+    def _think(self, move_no: int):
+        self.q.put(("thinking", move_no))
 
     def _emit(self, env, move):
         if self.delay:
@@ -66,7 +89,27 @@ class Demo:
 
     # ---- UI thread ---------------------------------------------------------
 
+    def _start_thinking(self, move_no: int):
+        self.thinking = True
+        self.bar.start(14)
+        self._animate_dots(move_no)
+
+    def _animate_dots(self, move_no: int):
+        if not self.thinking:
+            return
+        self.dots = (self.dots + 1) % 4
+        self.thinking_label.configure(
+            text=f"mistral-large-4 is thinking about move {move_no}"
+                 + "." * self.dots)
+        self.root.after(400, lambda: self._animate_dots(move_no))
+
+    def _stop_thinking(self):
+        self.thinking = False
+        self.bar.stop()
+        self.thinking_label.configure(text="Move played.")
+
     def _show_move(self, image, move):
+        self._stop_thinking()
         self.photo = ImageTk.PhotoImage(image)
         self.board_label.configure(image=self.photo)
         header = f"[move {move['move']}] {move['outcome'].upper()}"
@@ -107,6 +150,8 @@ class Demo:
                 kind, payload = self.q.get_nowait()
                 if kind == "move":
                     self._show_move(*payload)
+                elif kind == "thinking":
+                    self._start_thinking(payload)
                 elif kind == "done":
                     self._show_final(payload)
                     self.finished = True
