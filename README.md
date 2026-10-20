@@ -78,15 +78,25 @@ Design choices:
 
 ## Results
 
-Benchmark: 20 seeded games, beginner (9x9, 10 mines), temperature 0.
+Beginner boards (9x9, 10 mines), fixed seeds, temperature 0. The model agent played 5 seeded games (`--seed 1000..1004`); baselines played 100 games each. Note: the API is not fully deterministic even at temperature 0, so same-seed results can vary between runs.
 
-*(to be filled after the benchmark run)*
+| Agent | Win rate | Avg moves | Losses: forced guess | Losses: risky move |
+|-------|----------|-----------|---------------------|--------------------|
+| **mistral-large-4** (final prompt) | **3/5 (60%)** | 26.2 | 0 | 2 |
+| mistral-large-4 (initial prompt) | 1/5 (20%) | 17.4 | 0 | 4 |
+| Constraint solver (baseline) | 83/100 (83%) | 17.7 | 17 | 0 |
+| Random (floor baseline) | 0/100 (0%) | 4.0 | 1 | 99 |
 
-| Agent | Win rate | Avg moves | Losses by guess | Losses by risky move |
-|-------|----------|-----------|-----------------|----------------------|
-| mistral-large-4 | TBD | TBD | TBD | TBD |
-| Constraint solver | TBD | TBD | TBD | TBD |
-| Random | TBD | TBD | TBD | TBD |
+Reveal classification (final prompt, 5 games): 56 deduced, 9 risky, 5 openings, 0 pure guesses. Zero losses on forced guesses — every defeat was an unsafe reveal made while a safe deduction existed.
+
+### What the failure analysis found
+
+Four losses in the initial run shared one root cause: the model treated its own flags as facts. After flagging 10 cells (one wrong), it applied "N flagged neighbors -> rest is safe" and walked into a mine its own misflag had created — including one game it lost while announcing "All 10 mines flagged." Adding two prompt rules (verify every flag is constraint-forced before leaning on it; remove flags that create contradictions) doubled the win rate without any code change. The full run-by-run logs are in `results/`.
+
+Two model-behavior findings worth noting:
+
+- `mistral-large-4` is a thinking model: with `reasoning_effort="high"` it burns 8,000+ thinking tokens per move on a beginner board and gets truncated before emitting a tool call. With `reasoning_effort="none"` it reasons visibly in its reply text (short, correct frontier deductions) and plays fluently at ~2-15 s per move.
+- Long multi-turn tool conversations require real `tool_calls`/`tool` role history. Summarizing past tool calls as plain text taught the model to write tool calls *as text* instead of calling them.
 
 ## Project layout
 
@@ -113,6 +123,7 @@ Solo project, built with Mistral Vibe (agentic CLI coding) pair-programming in t
 
 ## Limitations
 
-- Beginner boards only in the current benchmark; intermediate (16x16, 40 mines) is supported but not yet benchmarked.
-- Minesweeper sometimes forces a guess; win rates below 100% are partially structural, which the guess/risky classification makes visible.
+- Small model benchmark (5 games, per the time budget); the baselines run 100 games. Same-seed runs can differ because the API is not fully deterministic at temperature 0.
+- Beginner boards only; intermediate (16x16, 40 mines) is supported but not benchmarked.
+- The harness includes guardrails a human wouldn't need: didactic no-op feedback, loop hints, and a rescue hint listing unrevealed cells after 6 consecutive failed actions (derived from visible state only, never mine positions).
 - The deduction engine used for metrics applies only the two classic single-cell rules (conservative): some "guess" moves would be resolvable with full constraint solving.

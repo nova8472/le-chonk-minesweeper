@@ -64,8 +64,18 @@ def main():
         game_seed = args.seed + i
         agent = make_agent(args.agent, args)
         t0 = time.time()
+
+        def report(env, move, _idx=i, _seed=game_seed):
+            act = move.get("action") or {}
+            args_str = act.get("arguments") or {}
+            print(f"[game {_idx + 1}/{args.games} seed={_seed}] move {move['move']}: "
+                  f"{act.get('name', '?')} {args_str} -> {move['outcome']}",
+                  flush=True)
+
+        print(f"[game {i + 1}/{args.games}] seed={game_seed} starting", flush=True)
         try:
-            record = play_game(env, agent, seed=game_seed, max_moves=args.max_moves)
+            record = play_game(env, agent, seed=game_seed,
+                               max_moves=args.max_moves, on_move=report)
         except Exception as err:
             record = {
                 "seed": game_seed, "difficulty": args.difficulty,

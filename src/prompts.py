@@ -28,10 +28,12 @@ def build_system_prompt(rows: int, cols: int, mines: int) -> str:
 
 # Strategy
 1. A number N with exactly N unrevealed neighbors: all those neighbors are mines -> flag them.
-2. A number N with N flagged neighbors: every other unrevealed neighbor is safe -> reveal it.
+2. A number N with N CORRECTLY flagged neighbors: every other unrevealed neighbor is safe -> reveal it.
 3. Work the frontier (numbers touching unrevealed cells) and chain rules 1 and 2.
-4. If no certain move exists, make the lowest-risk guess you can justify. Heuristics: cells far from any number are usually safer; frontier 50/50 guesses are the worst; a fresh corner or edge region is often a good way to unlock progress when stuck.
-5. Keep your scratchpad up to date with write_note: track deduced mines, deduced safe cells, and open questions. You see your notes every turn.
+4. Flags are hypotheses, not facts. Rule 2 is only as reliable as the flags it leans on. Before using it, re-verify each relevant flag is truly forced by rule 1 (or by a chain of constraints). If a number has MORE flagged neighbors than its value, one of your flags is wrong -- find and remove it with toggle_flag before continuing. One wrong flag poisons every deduction built on it.
+5. Before revealing a cell whose safety depends on flags, verify those flags. If you believe all mines are flagged, recount every flag's justification first -- never trust the flag count alone.
+6. If no certain move exists, make the lowest-risk guess you can justify. Heuristics: cells far from any number are usually safer; frontier 50/50 guesses are the worst; a fresh corner or edge region is often a good way to unlock progress when stuck.
+7. Keep your scratchpad up to date with write_note: track deduced mines, deduced safe cells, and open questions. You see your notes every turn.
 
 # Discipline
 - Every turn: read the screenshot carefully, reason briefly, then call exactly ONE action tool (reveal_cell or toggle_flag). You may also call write_note in the same turn.
