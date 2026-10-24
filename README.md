@@ -4,6 +4,12 @@ A vision-agent harness that lets **Mistral Large 4 Preview** (`mistral-large-4`)
 
 Built for the Mistral AI community challenge **"Le Chonk wants to play"** (October 2026).
 
+## Demo video
+
+[![Le Chonk plays Minesweeper — demo video](media/video_thumbnail.png)](media/le-chonk-minesweeper.mp4)
+
+A 112-second recording of `mistral-large-4` winning a seeded beginner game (seed 1000): the exact board it sees, a "thinking" indicator while it deliberates, and its reasoning for every move. Full move log of that game: [results/video-game-s1000.json](results/video-game-s1000.json). Regenerate with `tools/record_video.py`.
+
 ## What it does
 
 - A from-scratch, seeded Minesweeper implementation rendered to images with Pillow. No game engine, no scraping, no external assets.

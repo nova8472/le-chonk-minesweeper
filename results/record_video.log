@@ -1,0 +1,31 @@
+playing game, seed=1000 ...
+move 1: ok
+move 2: ok
+move 3: ok
+move 4: ok
+move 4: no_op
+move 4: no_op
+move 5: ok
+move 6: ok
+move 7: ok
+move 8: ok
+move 9: ok
+move 10: ok
+move 11: ok
+move 12: ok
+move 13: ok
+move 14: ok
+move 15: ok
+move 16: ok
+move 17: ok
+move 17: no_op
+move 17: no_op
+move 17: no_op
+move 18: ok
+move 19: ok
+move 19: no_op
+move 19: no_op
+move 19: no_op
+move 20: ok
+move 21: win
+video written: media/le-chonk-minesweeper.mp4 (2.1 MB, 121s)
