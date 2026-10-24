@@ -67,6 +67,13 @@ def summarize(records: list) -> dict:
     for r in records:
         class_counts.update(r.get("move_classifications") or {})
 
+    served_models = Counter()
+    attestation_failures = 0
+    for r in records:
+        served_models.update(r.get("served_models") or {})
+        if not r.get("attestation_ok", True):
+            attestation_failures += 1
+
     loss_reasons = Counter()
     for r in losses:
         last = (r.get("move_log") or [{}])[-1]
@@ -90,6 +97,8 @@ def summarize(records: list) -> dict:
         "avg_prompt_tokens": avg([r.get("prompt_tokens") for r in records]),
         "avg_completion_tokens": avg([r.get("completion_tokens") for r in records]),
         "move_classifications": dict(class_counts),
+        "served_models": dict(served_models),
+        "attestation_failures": attestation_failures,
     }
 
 
@@ -106,5 +115,8 @@ def format_summary(summary: dict, label: str) -> str:
         f"Avg secs:   {summary['avg_game_seconds']}",
         f"Avg tokens: prompt {summary['avg_prompt_tokens']} / completion {summary['avg_completion_tokens']}",
         f"Reveal classes: {summary['move_classifications']}",
+        f"Server-attested models: {summary['served_models']}"
+        + (f"  (MISMATCH x{summary['attestation_failures']})"
+           if summary["attestation_failures"] else ""),
     ]
     return "\n".join(lines)

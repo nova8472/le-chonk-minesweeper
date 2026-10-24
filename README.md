@@ -90,6 +90,15 @@ Design choices:
 - **Loop protection.** No-op actions and repeated actions trigger escalating hints injected into the prompt.
 - **Honest metrics.** Every reveal is classified against what a perfect player could have deduced from the visible board (conservative, flag-free deduction), so losses are attributed to forced guesses vs actual mistakes.
 
+## Model provenance (proof it is really mistral-large-4)
+
+The challenge requires `mistral-large-4` specifically (`mistral-large-latest` does not point to it). Evidence, strongest first:
+
+1. **Server attestation in the logs.** Every Mistral API response echoes the model that served it. The harness records that echo for every move (`served_models` in each game record under `results/`), and the benchmark fails loudly if any call was served by anything else. See e.g. `results/model-beginner-s1000-n5.json`.
+2. **Raw-HTTP receipt.** `python tools/verify_model.py` makes one tiny call per model name with no SDK involved and prints the server-echoed model field: requesting `mistral-large-4` is served by `mistral-large-4`; requesting `mistral-large-latest` is served by `mistral-large-latest` — a different deployment.
+3. **Mistral Studio dashboard.** The usage page at https://console.mistral.ai shows requests against `mistral-large-4` for the API key used here.
+4. **The code** requests `model="mistral-large-4"` (never `mistral-large-latest`) in `src/agent.py`, `src/benchmark.py`, and `src/play.py`.
+
 ## Results
 
 Beginner boards (9x9, 10 mines), fixed seeds, temperature 0. The model agent played 5 seeded games (`--seed 1000..1004`); baselines played 100 games each. Note: the API is not fully deterministic even at temperature 0, so same-seed results can vary between runs.

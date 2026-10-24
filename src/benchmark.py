@@ -97,6 +97,12 @@ def main():
     summary["first_seed"] = args.seed
     summary["timestamp"] = datetime.now(timezone.utc).isoformat()
 
+    if args.agent == "model":
+        unexpected = set(summary["served_models"]) - {args.model}
+        if unexpected or summary["attestation_failures"]:
+            print(f"\n*** WARNING: API calls served by unexpected models: "
+                  f"{unexpected or summary['served_models']} ***")
+
     tag = f"{args.agent}-{args.difficulty}-s{args.seed}-n{args.games}"
     out_path = out_dir / f"{tag}.json"
     with open(out_path, "w", encoding="utf-8") as f:

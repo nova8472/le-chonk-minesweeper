@@ -101,6 +101,7 @@ def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True,
             "cell": result.cell,
             "reasoning": resp.get("reasoning", ""),
             "thinking": (resp.get("thinking") or "")[:2000],
+            "model": resp.get("model"),  # server-echoed model name, for attestation
             "feedback": feedback,
             "outcome": result.outcome,
             "classification": classification,
@@ -112,9 +113,19 @@ def play_game(env, agent, seed=None, max_moves=150, on_move=None, classify=True,
             on_move(env, move_log[-1])
 
     outcome = "win" if game.won else ("loss" if game.done else "stalled")
+    served = {}
+    for m in move_log:
+        model = m.get("model")
+        if model:
+            served[model] = served.get(model, 0) + 1
+    requested = getattr(agent, "model", None)
+    attestation_ok = requested is None or (bool(served) and set(served) == {requested})
     return {
         "seed": seed,
         "difficulty": game.difficulty,
+        "requested_model": requested,
+        "served_models": served,  # server-echoed model name -> number of API calls
+        "attestation_ok": attestation_ok,
         "won": game.won,
         "outcome": outcome,
         "moves": game.moves,

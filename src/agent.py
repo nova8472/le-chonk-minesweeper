@@ -238,6 +238,7 @@ class MinesweeperAgent:
             "reasoning": reasoning,
             "thinking": thinking,
             "tool_calls": raw_calls,
+            "model": getattr(response, "model", None),  # server-echoed model name
             "prompt_tokens": pt,
             "completion_tokens": ct,
         }
